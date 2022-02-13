@@ -1,0 +1,24 @@
+{
+  "name": "Wordle Helper",
+  "description": "Gives you a hint when playing Wordle.",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.nytimes.com/games/wordle/index.html"
+      ],
+      "js": [
+        "wordlist.js",
+        "wordle-hint.js"
+      ]
+    }
+  ]
+}
