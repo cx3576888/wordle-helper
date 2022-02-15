@@ -1,10 +1,50 @@
+const test = getEnvironment() === 'node';
+const testGuesses = [
+  ['piker', '01000'],
+  ['waits', '00100'],
+  ['comix', '20020'],
+];
 init();
 
+function getEnvironment() {
+  if (typeof window !== 'undefined' && this === window) {
+    return 'browser';
+  }
+  if (typeof module === 'object' && module.exports) {
+    return 'node';
+  }
+  return 'unknown';
+}
+
 function init() {
-  const guesses = getGuesses();
-  let result = [...list];
+  const guesses = test ? getTestGuesses() : getGuesses();
+  const all = test ? require('./wordlist').list : list;
+  let result = all.sort();
   guesses.forEach(guess => {
     result = narrowDown(result, guess);
+  });
+}
+
+function getTestGuesses() {
+  const toEval = { 0: 'absent', 1: 'present', 2: 'correct' };
+  return testGuesses.map(testGuess => {
+    const obj = {
+      letters: testGuess[0],
+      clueArray: [],
+      correctPosition: [],
+      presentPosition: [],
+    };
+    for (let i = 0; i <= 4; i++) {
+      const ev = toEval[testGuess[1][i]];
+      obj.clueArray.push({ position: i, letter: testGuess[0][i], evaluation: ev });
+      if (ev === 'correct') {
+        obj.correctPosition.push(i);
+      }
+      if (ev === 'present') {
+        obj.presentPosition.push(i);
+      }
+    }
+    return obj;
   });
 }
 
@@ -63,7 +103,8 @@ function narrowDown(result, guess) {
         break;
     }
   });
-  console.log(`Guess [${guess.letters}] -> ${result.length} possible answers remain: `, result);
+  console.log(`Guess [${guess.letters}] -> ${result.length} possible answers remain: `);
+  test ? console.dir(result, { maxArrayLength: 3000 }) : console.log(result);
   return result;
 }
 
