@@ -4,6 +4,9 @@ const testGuesses = [
   ['waits', '00100'],
   ['comix', '20020'],
 ];
+const all = test ? require('./wordlist').list : list;
+let result = all.sort();
+
 init();
 
 function getEnvironment() {
@@ -18,11 +21,15 @@ function getEnvironment() {
 
 function init() {
   const guesses = test ? getTestGuesses() : getGuesses();
-  const all = test ? require('./wordlist').list : list;
-  let result = all.sort();
   guesses.forEach(guess => {
     result = narrowDown(result, guess);
   });
+}
+
+function newGuessEntered() {
+  const guesses = getGuesses();
+  const lastGuess = guesses[guesses.length - 1];
+  result = narrowDown(result, lastGuess);
 }
 
 function getTestGuesses() {
@@ -126,4 +133,44 @@ function absent(result, letter, position, takenPosition) {
 
 function remainLetters(word, takenPosition) {
   return Array.from(word).filter((c, i) => !takenPosition.includes(i));
+}
+
+if (!test) {
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      enterClicked();
+    }
+  });
+  
+  document
+    .querySelector('game-app').shadowRoot
+    .querySelector('game-keyboard').shadowRoot
+    .querySelector('button[data-key="↵"]')
+    .addEventListener('click', enterClicked);
+}
+
+function enterClicked() {
+  checkLastGuess()
+    .then(() => {
+      newGuessEntered();
+    })
+    .catch(err => {
+      console.log(err);
+    })
+}
+
+function checkLastGuess() {
+  const toaster = document
+    .querySelector('game-app').shadowRoot
+    .querySelector('#game-toaster');
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const toast = toaster.querySelector('game-toast');
+      if (toast === null) {
+        resolve();
+      } else {
+        reject(toast.getAttribute('text'));
+      }
+    }, 750);
+  });
 }
