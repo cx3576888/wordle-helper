@@ -1,64 +1,29 @@
-const test = getEnvironment() === 'node';
-const testGuesses = [
-  ['piker', '01000'],
-  ['waits', '00100'],
-  ['comix', '20020'],
-];
-const all = test ? require('./wordlist').list : list;
-let result = all.sort();
+const isNode = typeof module === 'object' && module.exports;
 
-init();
-
-function getEnvironment() {
-  if (typeof window !== 'undefined' && this === window) {
-    return 'browser';
-  }
-  if (typeof module === 'object' && module.exports) {
-    return 'node';
-  }
-  return 'unknown';
+let result;
+if (!isNode) {
+  document.addEventListener('game-key-press', (evt => {
+    if (evt.detail.key === 'Enter' || evt.detail.key === '↵') {
+      enterClicked();
+    }
+  }));
+  result = list.sort();
+  init();
 }
 
 function init() {
-  const guesses = test ? getTestGuesses() : getGuesses();
+  const guesses = getGuesses();
   guesses.forEach(guess => {
     result = narrowDown(result, guess);
   });
-  if (!test) {
-    updateOptions(result);
-  }
+  updateOptions(result);
 }
 
 function newGuessEntered() {
   const guesses = getGuesses();
   const lastGuess = guesses[guesses.length - 1];
   result = narrowDown(result, lastGuess);
-  if (!test) {
-    updateOptions(result);
-  }
-}
-
-function getTestGuesses() {
-  const toEval = { 0: 'absent', 1: 'present', 2: 'correct' };
-  return testGuesses.map(testGuess => {
-    const obj = {
-      letters: testGuess[0],
-      clueArray: [],
-      correctPosition: [],
-      presentPosition: [],
-    };
-    for (let i = 0; i <= 4; i++) {
-      const ev = toEval[testGuess[1][i]];
-      obj.clueArray.push({ position: i, letter: testGuess[0][i], evaluation: ev });
-      if (ev === 'correct') {
-        obj.correctPosition.push(i);
-      }
-      if (ev === 'present') {
-        obj.presentPosition.push(i);
-      }
-    }
-    return obj;
-  });
+  updateOptions(result);
 }
 
 function getGuesses() {
@@ -117,7 +82,7 @@ function narrowDown(result, guess) {
     }
   });
   console.log(`Guess [${guess.letters}] -> ${result.length} possible answers remain: `);
-  test ? console.dir(result, { maxArrayLength: 3000 }) : console.log(result);
+  console.dir(result, { maxArrayLength: 3000 });
   return result;
 }
 
@@ -139,14 +104,6 @@ function absent(result, letter, position, takenPosition) {
 
 function remainLetters(word, takenPosition) {
   return Array.from(word).filter((c, i) => !takenPosition.includes(i));
-}
-
-if (!test) {
-  document.addEventListener('game-key-press', (evt => {
-    if (evt.detail.key === 'Enter' || evt.detail.key === '↵') {
-      enterClicked();
-    }
-  }));
 }
 
 function enterClicked() {
@@ -173,4 +130,8 @@ function checkLastGuess() {
       }
     }, 750);
   });
+}
+
+if (isNode) {
+  module.exports = { narrowDown };
 }

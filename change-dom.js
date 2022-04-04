@@ -39,11 +39,11 @@ optionContainer.id = 'option-container';
 optionContainer.classList.add('hide');
 dropdown.append(optionContainer);
 
-function updateOptions(arr) {
-  const placeholder = `(${arr.length} possible answers)`;
+function updateOptions(result) {
+  const placeholder = `(${result.length} possible answers)`;
   selected.innerText = placeholder;
   optionContainer.innerHTML = '';
-  arr.unshift(placeholder);
+  const arr = [placeholder].concat(result);
   arr.forEach((elm, i) => {
     const optionDiv = document.createElement('div');
     optionDiv.id = i === 0 ? 'option_placeholder' : `option_${elm}`;
