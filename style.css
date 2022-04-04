@@ -1,0 +1,4 @@
+::part(adjust-container) {
+  margin-bottom: 10px;
+  overflow-y: auto;
+}

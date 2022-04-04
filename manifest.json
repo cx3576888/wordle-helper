@@ -15,8 +15,12 @@
       "matches": [
         "https://www.nytimes.com/games/wordle/index.html"
       ],
+      "css": [
+        "style.css"
+      ],
       "js": [
         "wordlist.js",
+        "change-dom.js",
         "wordle-hint.js"
       ]
     }

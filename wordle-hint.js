@@ -24,12 +24,18 @@ function init() {
   guesses.forEach(guess => {
     result = narrowDown(result, guess);
   });
+  if (!test) {
+    updateOptions(result);
+  }
 }
 
 function newGuessEntered() {
   const guesses = getGuesses();
   const lastGuess = guesses[guesses.length - 1];
   result = narrowDown(result, lastGuess);
+  if (!test) {
+    updateOptions(result);
+  }
 }
 
 function getTestGuesses() {
@@ -136,17 +142,11 @@ function remainLetters(word, takenPosition) {
 }
 
 if (!test) {
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
+  document.addEventListener('game-key-press', (evt => {
+    if (evt.detail.key === 'Enter' || evt.detail.key === '↵') {
       enterClicked();
     }
-  });
-  
-  document
-    .querySelector('game-app').shadowRoot
-    .querySelector('game-keyboard').shadowRoot
-    .querySelector('button[data-key="↵"]')
-    .addEventListener('click', enterClicked);
+  }));
 }
 
 function enterClicked() {
