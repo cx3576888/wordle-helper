@@ -35,28 +35,32 @@ function getGuesses() {
     .forEach(gameRow => {
       const currentGuess = {
         letters: gameRow.getAttribute('letters'),
-        clueArray: [],
-        correctPosition: [],
-        presentPosition: [],
+        correctInfo: [],
+        presentInfo: [],
+        absentInfo: [],
+        evaluated: 0,
       };
       gameRow.shadowRoot
         .querySelectorAll('game-tile')
         .forEach((gameTile, i) => {
           const tileLetter = gameTile.getAttribute('letter');
           const tileEvaluation = gameTile.getAttribute('evaluation');
-          if (tileEvaluation !== null) {
-            currentGuess.clueArray.push({
-              position: i, letter: tileLetter, evaluation: tileEvaluation
-            });
-            if (tileEvaluation === 'correct') {
-              currentGuess.correctPosition.push(i);
-            }
-            if (tileEvaluation === 'present') {
-              currentGuess.presentPosition.push(i);
-            }
+          switch (tileEvaluation) {
+            case 'correct':
+              currentGuess.correctInfo.push({ letter: tileLetter, position: i });
+              currentGuess.evaluated++;
+              break;
+            case 'present':
+              currentGuess.presentInfo.push({ letter: tileLetter, position: i });
+              currentGuess.evaluated++;
+              break;
+            case 'absent':
+              currentGuess.absentInfo.push({ letter: tileLetter, position: i });
+              currentGuess.evaluated++;
+              break;
           }
         });
-      if (currentGuess.clueArray.length === 5) {
+      if (currentGuess.evaluated === 5) {
         guesses.push(currentGuess);
       }
     });
@@ -64,46 +68,51 @@ function getGuesses() {
 }
 
 function narrowDown(result, guess) {
-  guess.clueArray.forEach(clue => {
-    switch (clue.evaluation) {
-      case 'correct':
-        result = correct(result, clue.letter, clue.position);
-        break;
-      case 'present':
-        result = present(result, clue.letter, clue.position, guess.correctPosition);
-        break;
-      case 'absent':
-        const takenPosition = [...guess.correctPosition, ...guess.presentPosition];
-        result = absent(result, clue.letter, clue.position, takenPosition);
-        break;
-      default:
-        console.warn(`Unknown evaluation state ${clue.evaluation}!`);
-        break;
-    }
-  });
+  result = correct(result, guess.correctInfo);
+  result = present(result, guess.correctInfo, guess.presentInfo);
+  result = absent(result, guess.correctInfo, guess.presentInfo, guess.absentInfo);
   console.log(`Guess [${guess.letters}] -> ${result.length} possible answers remain: `);
   console.dir(result, { maxArrayLength: 3000 });
   return result;
 }
 
-function correct(result, letter, position) {
-  return result.filter(word => word[position] === letter);
-}
-
-function present(result, letter, position, takenPosition) {
+function correct(result, correctInfo) {
   return result.filter(word => {
-    return remainLetters(word, takenPosition).includes(letter) && word[position] !== letter;
+    return correctInfo.every(c => word[c.position] === c.letter);
   });
 }
 
-function absent(result, letter, position, takenPosition) {
-  return result.filter(word => {
-    return !remainLetters(word, takenPosition).includes(letter);
+function present(result, correctInfo, presentInfo) {
+  const takenPositions = correctInfo.map(c => c.position);
+  presentInfo.forEach(info => {
+    const currLetter = info.letter;
+    const sameLetterInfo = presentInfo.filter(p => p.letter === currLetter);
+    result = result.filter(word => {
+      for (const sameLetter of sameLetterInfo) {
+        if (word[sameLetter.position] === currLetter) {
+          return false;
+        }
+      }
+      return remainLetters(word, takenPositions).filter(l => l === currLetter).length >= sameLetterInfo.length;
+    });
   });
+  return result;
 }
 
-function remainLetters(word, takenPosition) {
-  return Array.from(word).filter((c, i) => !takenPosition.includes(i));
+function absent(result, correctInfo, presentInfo, absentInfo) {
+  const takenPositions = correctInfo.map(c => c.position);
+  absentInfo.forEach(info => {
+    const currLetter = info.letter;
+    const sameLetterInfo = presentInfo.filter(p => p.letter === currLetter);
+    result = result.filter(word => {
+      return remainLetters(word, takenPositions).filter(l => l === currLetter).length === sameLetterInfo.length;
+    });
+  })
+  return result;
+}
+
+function remainLetters(word, takenPositions) {
+  return Array.from(word).filter((w, i) => !takenPositions.includes(i));
 }
 
 function enterClicked() {

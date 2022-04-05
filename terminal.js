@@ -43,18 +43,22 @@ function showResult(newGuess) {
 function formatGuess(newGuess) {
   const obj = {
     letters: newGuess[0],
-    clueArray: [],
-    correctPosition: [],
-    presentPosition: [],
+    correctInfo: [],
+    presentInfo: [],
+    absentInfo: [],
   };
   for (let i = 0; i < 5; i++) {
     const ev = toEval[newGuess[1][i]];
-    obj.clueArray.push({ position: i, letter: newGuess[0][i], evaluation: ev });
-    if (ev === 'correct') {
-      obj.correctPosition.push(i);
-    }
-    if (ev === 'present') {
-      obj.presentPosition.push(i);
+    switch (ev) {
+      case 'correct':
+        obj.correctInfo.push({ letter: newGuess[0][i], position: i });
+        break;
+      case 'present':
+        obj.presentInfo.push({ letter: newGuess[0][i], position: i });
+        break;
+      case 'absent':
+        obj.absentInfo.push({ letter: newGuess[0][i], position: i });
+        break;
     }
   }
   return obj;

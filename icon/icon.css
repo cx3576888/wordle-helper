@@ -1,0 +1,34 @@
+.correct {
+  background-color: #6aaa64;
+}
+.present {
+  background-color: #c9b458;
+}
+.absent {
+  background-color: #787c7e;
+}
+.row {
+  display: flex;
+}
+.tile {
+  width: 20px;
+  height: 20px;
+}
+.container {
+  position: relative;
+  width: 60px;
+}
+.text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  font-family: sans-serif;
+  font-weight: 700;
+  font-size: 48px;
+  color: #ffffff;
+}
